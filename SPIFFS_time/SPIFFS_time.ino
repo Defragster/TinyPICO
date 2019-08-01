@@ -4,18 +4,25 @@
 #include <WiFi.h>
 #include <TinyPICO.h>
 
-// Interval between internal temperature reads
-unsigned long next_temp_read = 0;   // Next time step in milliseconds
-uint32_t temp_read_interval = 10000;  // This is in milliseconds
-
 // Initialise the TinyPICO library
 TinyPICO tp = TinyPICO();
+#define DOTSTAR_CYCLE 33 // change this to cyle dotstart rate of change
 
 const char* ssid     = "ssid";
 const char* password = "PW";
 
 long timezone = -8;
 byte daysavetime = 1;
+
+/* You only need to format SPIFFS the first time you run a
+   test or else use the SPIFFS plugin to create a partition
+   https://github.com/me-no-dev/arduino-esp32fs-plugin */
+#define FORMAT_SPIFFS_IF_FAILED  true // false
+
+// Interval between internal temperature reads
+unsigned long next_temp_read = 0;   // Next time step in milliseconds
+uint32_t temp_read_interval = 10000;  // This is in milliseconds
+
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
   Serial.printf("Listing directory: %s\n", dirname);
@@ -139,8 +146,8 @@ void deleteFile(fs::FS &fs, const char * path) {
 }
 
 void setup() {
-  //    Serial.begin(115200);
-  Serial.begin(2000000);
+  Serial.begin(115200);
+  //Serial.begin(2000000);
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.println();
@@ -165,9 +172,14 @@ void setup() {
   Serial.printf("\nNow is : %d-%02d-%02d %02d:%02d:%02d\n", (tmstruct.tm_year) + 1900, ( tmstruct.tm_mon) + 1, tmstruct.tm_mday, tmstruct.tm_hour , tmstruct.tm_min, tmstruct.tm_sec);
   Serial.println("");
 
-  if (!SPIFFS.begin()) {
-    Serial.println("Card Mount Failed");
-    return;
+  if (!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED)) {
+    if (!SPIFFS.begin()) {
+      Serial.println("SPIFFS Mount Failed :: Needs formatting?");
+      return;
+    }
+    if ( FORMAT_SPIFFS_IF_FAILED) {
+      Serial.println("SPIFFS Mount Failed :: FORMATTING");
+    }
   }
 
   listDir(SPIFFS, "/", 0);
@@ -183,7 +195,7 @@ void setup() {
 void loop()
 {
   // Cycle the DotStar colour every 25 miliseconds
-  tp.DotStar_CycleColor(25);
+  tp.DotStar_CycleColor(DOTSTAR_CYCLE);
 
   // You can set the DotStar colour directly using r,g,b values
   // tp.DotStar_SetPixelColor( 255, 128, 0 );
