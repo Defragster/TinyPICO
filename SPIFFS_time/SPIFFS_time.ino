@@ -6,7 +6,7 @@
 
 // Initialise the TinyPICO library
 TinyPICO tp = TinyPICO();
-#define DOTSTAR_CYCLE 33 // change this to cyle dotstart rate of change
+#define DOTSTAR_CYCLE 33 // change this to cyle dotstar rate of change
 
 const char* ssid     = "ssid";
 const char* password = "PW";
