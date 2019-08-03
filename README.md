@@ -12,6 +12,13 @@ SPIFFS_time.ino
 -----------------
 First sample of combined samples - connects to WiFi {set SSID/PW } gets ntp {adjust timezone}, tests SPIFFS, shows space, prints TEMP/WiFi state each 10 secs and does TinyPICO RGB color change.
 
+SSD1306SimpleDemo.ino
+-----------------
+Got ssd1306 working with : https://github.com/ThingPulse/esp8266-oled-ssd1306  In \libraries\ESP8266_and_ESP32_Oled_Driver_for_SSD1306_display\src\SSD1306Wire.h changed to Wire.setClock(1000000); from 700K - seems to be the limit. May be faster ssd1306 libs or wire libs? BUt that said SSD1306&esp32 so I used it and it works to about 50 Hz updates.
+
+Used one of the samples there - added button reads to force one of the list of tests to run [0,1,2,3] and read light sensor and print a 'Lsen #' value between each 3 second stest display period. No analogWrite() or tone() to test the speaker pin #25 so it just prints a multiple of 200 that was to be the tone/freq. In room here the sensor reads 0 unless a lihgt is pointed at it. It toggles the blue PLAY LED #4 between each test
+
+Not sure of the acceleromter for now ?
 
 FIRST NOTES:
 ============
