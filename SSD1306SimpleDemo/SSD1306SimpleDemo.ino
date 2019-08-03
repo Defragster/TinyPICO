@@ -4,6 +4,8 @@ uint32_t pButt[4][2] = { 26, 0, 27, 0, 15, 0, 14, 0 };
 #define PLAYLSEN 32
 #define PLAYAUD 25
 bool bPlayLed = false;
+#include <TinyPICO.h>
+TinyPICO tp = TinyPICO();
 
 /**
    The MIT License (MIT)
@@ -222,6 +224,7 @@ void loop() {
     static uint32_t lLsen = 1;
     // tone( PLAYAUD, 200*(aa/200), 500 ); // No analog out ???
     // analogWrite( PLAYAUD, 200*(aa/200) );
+     tp.Tone( PLAYAUD, aa );
     if ( aa != lLsen ) {
       lLsen = aa;
       Serial.print( "Lsen #" );
