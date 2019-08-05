@@ -6,6 +6,9 @@
 
 extern const uint8_t known_correct_signature[];
 
+#define USE_TASK0 // Comment this to not start TASK0
+#define USE_TASK1 // Comment this to not start TASK1
+
 TaskHandle_t Task0;
 TaskHandle_t Task1;
 
@@ -14,7 +17,11 @@ uint32_t t1C = 0;
 
 void setup() {
   Serial.begin(115200);
+
+  rsa_init();
+
   //create a task that will be executed in the Task0code() function, with priority 1 and executed on core 0
+#ifdef USE_TASK0
   xTaskCreatePinnedToCore(
     Task0code,   /* Task function. */
     "Task0",     /* name of task. */
@@ -23,7 +30,9 @@ void setup() {
     1,           /* priority of the task */
     &Task0,      /* Task handle to keep track of created task */
     0);          /* pin task to core 0 */
+#endif
 
+#ifdef USE_TASK1
   //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 1
   xTaskCreatePinnedToCore(
     Task1code,   /* Task function. */
@@ -33,7 +42,7 @@ void setup() {
     1,           /* priority of the task */
     &Task1,      /* Task handle to keep track of created task */
     1);          /* pin task to core 1 */
-  rsa_init();
+#endif
 
   Serial.print(__func__);
   Serial.print(": running on core ");
@@ -43,12 +52,9 @@ void setup() {
 uint8_t signature[256];
 uint8_t signature1[256];
 
-//Task0code: blinks an LED every 1000 ms
 void Task0code( void * pvParameters ) {
-  while ( 1 > t1C ) {
-    delay(1);
-    vTaskDelay(200 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
-  }
+  delay(1);
+  vTaskDelay(200 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
   Serial.print(__func__);
   Serial.print(": running on core ");
   Serial.println(xPortGetCoreID());
@@ -82,7 +88,6 @@ void Task0code( void * pvParameters ) {
   } while (1);
 }
 
-//Task1code: blinks an LED every 700 ms
 void Task1code( void * pvParameters ) {
   delay(1);
   vTaskDelay(200 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
@@ -90,7 +95,7 @@ void Task1code( void * pvParameters ) {
   Serial.print(__func__);
   Serial.print(": running on core ");
   Serial.println(xPortGetCoreID());
-  vTaskDelay(200 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
+  //vTaskDelay(200 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
   Serial.print("RSA Signature Speed Test: Task");
   Serial.println(xPortGetCoreID());
   Serial.println();
@@ -98,17 +103,17 @@ void Task1code( void * pvParameters ) {
   uint32_t begin_usec;
   do {
     begin_usec = micros();
-    vTaskDelay(2 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
-    for (int ii = 0; ii < 6; ii++) {
+    //  vTaskDelay(2 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
+    for (int ii = 0; ii < 16; ii++) {
       RunTest1();
     }
     begin_usec = micros() - begin_usec;
-    vTaskDelay(2 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
-    Serial.printf( "Task%d: 6 iterations in us=%u", xPortGetCoreID() , begin_usec );
+    //    vTaskDelay(2 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
+    Serial.printf( "Task%d: 16 iterations in us=%u", xPortGetCoreID() , begin_usec );
 
     // Print results
     Serial.print("\tSignature computation took ");
-    Serial.print((float)(begin_usec) * 1.0e-6 / 6, 3);
+    Serial.print((float)(begin_usec) * 1.0e-6 / 16, 3);
     Serial.println(" seconds");
     // Verify the computed result
     if (memcmp(signature1, known_correct_signature, 256) == 0) {
@@ -121,7 +126,7 @@ void Task1code( void * pvParameters ) {
 }
 
 
-
+// Quick dupe of call with unique signature{}, could pass *ptr ...
 void RunTest0()
 {
   // Run the speed benchmark
@@ -133,7 +138,8 @@ void RunTest1()
   rsa_sign_string("Sample plaintext string to be signed", signature1);
 }
 
-void foo() {
+#if 0
+void foo() { //NOT USED
   // Print results
   Serial.print("Signature computation took ");
   //Serial.print((float)(end_usec - begin_usec) * 1.0e-6, 3);
@@ -156,6 +162,7 @@ void foo() {
     Serial.println("ERROR: Signature is not correct!");
   }
 }
+#endif
 
 void loop()
 {
